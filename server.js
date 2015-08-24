@@ -6,19 +6,17 @@ var fs = require('fs'),
 	postalCode = require('./postal-code'),
 	schema = require('./schema');
 
-var port = 8085;
 
-// Bootstrap db connection
-// var db = mongoose.connect(config.db, function(err) {
-// 	if (err) {
-// 		console.error(chalk.red('Could not connect to MongoDB!'));
-// 		console.log(chalk.red(err));
-// 	}
-// });
+if (process.env.NODE_ENV === 'hosted') {
+	var port = process.env.PORT;
+	mongoose.connect(process.env.MONGOLAB_URI);	
+}
+else {
+	var port = 8085;
+	mongoose.connect('mongodb://localhost/mashiyat');	
+}
 
-mongoose.connect('mongodb://localhost/mashiyat');
-
-
+/* For basic debugging of the server and DB
 var kitty = new schema.Cat({ name: 'Zildjian' });
 kitty.save(function (err) {
   if (err) {
@@ -28,23 +26,9 @@ kitty.save(function (err) {
   	console.log('meow');
   }
 });
+*/
 
 var app = express();
-
-// Seeting the app to respond to AJAX calls based on the postal code
-// app.get('/checkPC', function(req, res){
-// 	var code = req.query.code;
-// 	console.log('looking for code ', code);
-// 	postalCode.checkPostalCode(code, function(results) {
-// 		// TODO: need to handle errors, invalid codes
-// 		if (results === undefined) {
-// 			res.end('That postal code does not exist');
-// 		}
-// 		else {
-// 			res.end('You are looking for riding #' + results);			
-// 		}
-// 	});
-// });
 
 
 // Setting the app to respond to AJAX calls based on the postal code
@@ -73,5 +57,3 @@ app.listen(port);
 
 // Logging initialization
 console.log('ELECTION application started on port ' + port);
-
-// console.log('postalCode', postalCode);
