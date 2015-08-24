@@ -4,7 +4,11 @@ var fs = require('fs'),
 	mongoose = require('mongoose'),
 	schema = require('./schema');
 
-mongoose.connect('mongodb://localhost/mashiyat');
+
+var localDB = 'mongodb://localhost/mashiyat';
+var hostedDB = 'mongodb://heroku_pfgs482g:oru1ndak8cke7sl335s2ginheu@ds061148.mongolab.com:61148/heroku_pfgs482g';
+
+mongoose.connect(hostedDB);
 
 
 /*Initial code to test the database
@@ -29,8 +33,8 @@ setTimeout(function() {
 	// At time of writing, this line will print the number of documents in the Riding collection
 	schema.ridingsList();
 
-	// wait 10 seconds for all database saves to complete
-}, 10000);
+	// wait 15 seconds for all database saves to complete
+}, 15000);
 
 
 
