@@ -3,13 +3,7 @@
 	"description": "Simple app to enable development of the stack for the front page.",
 	"version": "0.0.1",
 	"author": "Marc",
-	"engines": {
-		"node": "0.12.x",
-		"npm": "2.6.x"
-	},
 	"dependencies": {
-		"express": "~4.10.1",
-		"mongoose": "~3.8.8",
-		"request": "~2.61.x"
+		"bootstrap": "~3"
 	}
 }

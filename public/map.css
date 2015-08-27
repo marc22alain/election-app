@@ -25,10 +25,6 @@
 }
 
 text {
-     font-family: Helvetica;
-/*     text-align: center;*/
-     text-anchor: middle;
-     z-index: 100;
-     /*font-weight: 300;*/
-     /*font-size: 12px;*/
+  font-family: Helvetica;
+  text-anchor: middle;
 }

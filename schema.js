@@ -45,10 +45,10 @@ exports.ridingByNum = function(ridingNum, callback) {
 			console.log('error is ', err);
 		}
 		else {
-			console.log('riding for ' + result[0] + ' was found.');
+			console.log('riding for ' + result[0].number + ' was found.');
 			if (callback) {
 				var jsonPath = JSON.parse(result[0].path);
-				console.log('jsonPath is type ', typeof(jsonPath));
+				// console.log('jsonPath is type ', typeof(jsonPath));
 				callback(jsonPath);				
 			}
 		}
@@ -62,6 +62,7 @@ exports.ridingsList = function() {
 			console.log('error is ', err);			
 		}
 		else {
+			// TODO: turn this into serving all ridings
 			console.log("number of ridings in DB is ",results.length);
 		}
 	});

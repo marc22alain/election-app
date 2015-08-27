@@ -13,7 +13,12 @@ if (process.env.NODE_ENV === 'hosted') {
 }
 else {
 	var port = 8085;
-	mongoose.connect('mongodb://localhost/mashiyat');	
+	// TODO: add an error catch for failing to connect
+	mongoose.connect('mongodb://localhost/mashiyat', function(err) {
+		if (err) {
+			console.log('OOPS, someone forgot to turn on the MongoDB', err);			
+		}
+	});	
 }
 
 /* For basic debugging of the server and DB
