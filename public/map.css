@@ -1,5 +1,14 @@
 .background {
   fill: none;
+  stroke: #aaa;
+  stroke-width: 1px;
+  pointer-events: all;
+}
+
+.icon-background {
+  fill: white;
+  stroke: #aaa;
+  stroke-width: 1px;
   pointer-events: all;
 }
 
@@ -12,7 +21,9 @@
 }
 
 #riding .riding {
-  fill: yellow;
+  /*fill: yellow;*/
+  stroke: #fff;
+  stroke-width: 1px;
 }
 
 #province-borders {
@@ -24,7 +35,20 @@
   pointer-events: none;
 }
 
-text {
+#riding_names {
   font-family: Helvetica;
   text-anchor: middle;
+}
+
+.zoom_pan {
+  font-family: Helvetica;
+  text-anchor: middle;
+  fill: white;
+}
+
+.symbol {
+  stroke: #aaa;
+  fill: #aaa;
+  stroke-width: 5px;
+  stroke-linecap: round;
 }

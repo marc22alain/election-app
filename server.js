@@ -53,6 +53,13 @@ app.get('/checkPC', function(req, res){
 	});
 });
 
+// Attempting to match the Represent API is far too much work
+app.get('/boundaries', function(req, res) {
+	schema.ridingsList(req, function(ridingPaths) {
+		res.json(ridingPaths);
+	});
+})
+
 // Setting the app router and static folder
 app.use(express.static(path.resolve('./public')));
 

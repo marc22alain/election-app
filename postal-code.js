@@ -23,6 +23,9 @@ var parsePath = function(path) {
 		// TODO: trigger a more formal error and send back an appropriate response
 	}
 	else {
+		if (path.match(pattern) === null) {
+			// TODO: handle this gracefully
+		}
 		var ridingParam = path.match(pattern)[0];
 		var riding = ridingParam.slice(3,8);
 		console.log('Riding is ', riding);
