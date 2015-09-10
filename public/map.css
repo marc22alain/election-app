@@ -1,5 +1,14 @@
 .background {
   fill: none;
+  stroke: #aaa;
+  stroke-width: 1px;
+  pointer-events: all;
+}
+
+.icon-background {
+  fill: white;
+  stroke: #aaa;
+  stroke-width: 1px;
   pointer-events: all;
 }
 
@@ -12,7 +21,9 @@
 }
 
 #riding .riding {
-  fill: yellow;
+  /*fill: yellow;*/
+  stroke: #fff;
+  stroke-width: 1px;
 }
 
 #province-borders {
@@ -24,11 +35,46 @@
   pointer-events: none;
 }
 
-text {
-     font-family: Helvetica;
-/*     text-align: center;*/
-     text-anchor: middle;
-     z-index: 100;
-     /*font-weight: 300;*/
-     /*font-size: 12px;*/
+#riding_names {
+  font-family: Helvetica;
+  text-anchor: middle;
+}
+
+.zoom_pan {
+  font-family: Helvetica;
+  text-anchor: middle;
+  fill: white;
+}
+
+.symbol {
+  stroke: #aaa;
+  fill: #aaa;
+  stroke-width: 5px;
+  stroke-linecap: round;
+}
+
+.bubble {
+  font-family: Helvetica;
+  text-anchor: left;
+  font-size: 12px;
+  fill: white;
+}
+
+.candidate_photo {
+  clip-path: url(#rect-mask);
+}
+
+.tooltip {
+/*  background: #eee;
+  box-shadow: 0 0 5px #999999;
+  color: #333;
+  display: none;
+  font-size: 12px;
+  left: 130px;
+  padding: 10px;
+  position: absolute;
+  text-align: center;
+  top: 95px;
+  width: 80px;
+  z-index: 10;*/
 }

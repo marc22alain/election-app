@@ -1,3 +1,8 @@
 
 node_modules
 deployment
+bower_components
+public/lib
+public/old_mapping.js
+
+candidates_per_party.json
