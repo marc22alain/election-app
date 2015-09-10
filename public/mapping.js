@@ -4,7 +4,7 @@
 var width, height;
 
 // for mapping
-var mapSvg, superGroup, ridingGroup, textGroup, path, centered;
+var mapSvg, superGroup, ridingGroup, textGroup, path, centered, candidatesGroup, tooltip;
 
 // for user controls
 var zoomPanGroup, viewScale, viewCenterX, viewCenterY, zoomFactor, panFactor;
@@ -105,6 +105,7 @@ var createMap = function(canada) {
 		// now attaching an event handler to the RECT ... clicking on the sea also has a result
 		.on('click', clicked);
 
+	mapSvg.attr('position', 'relative');
 	// <g> is a group
 	superGroup = mapSvg.append('g');
 
@@ -133,8 +134,21 @@ var createMap = function(canada) {
 	ridingGroup = superGroup.append('g').attr('id', 'riding');
 	textGroup = superGroup.append('g').attr('id', 'riding_names');
 
-	
 	makeZoomPanGroup();
+
+	candidatesGroup = mapSvg.append('g');
+
+	var rectMaskDef = mapSvg.append('defs').append('clipPath').attr('id','rect-mask');
+	rectMaskDef.append('rect')
+		.attr('x', '0')
+		.attr('y', '0')
+		.attr('rx', '20')
+		.attr('ry', '20')
+		.attr('width', '200')
+		.attr('height', '200')
+		.attr('fill', 'none')
+		.attr('stroke-width', '1px')
+		.attr('stroke', '#aaa');
 
 	// NAMING the provinces
 	// var names = textGroup.selectAll('text').data(topojson.feature(canada, canada.objects.provinces).features);
@@ -145,6 +159,9 @@ var createMap = function(canada) {
 	// 	.append('text')
 	// 	.attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
 	// 	.text(function(d) { return path.area(d); });
+
+	// tooltip = d3.select('#map').append('div').attr('class', 'tooltip');
+	// tooltip.append('div').attr('id','candidate_info');
 };
 
 var makeZoomPanGroup = function() {
@@ -289,9 +306,7 @@ var zoomTransition = function(d) {
 		centered = d;
 	}
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+	resolveTransition();
 };
 
 
@@ -308,20 +323,21 @@ var drawRiding = function(data) {
 	paths.enter()
 		.append('path')
 		.attr('d', path)
-		.attr('class', 'riding');
+		.attr('class', 'riding')
+		.attr('fill', 'yellow');
 
 	// transition to the new riding
 	var d = ridingGroup.select('path');
 	var centroid = path.centroid(d.datum());
-	var x = centroid[0];
-	var y = centroid[1];
+	viewCenterX = centroid[0];
+	viewCenterY = centroid[1];
 
 	var b = path.bounds(data);
 	// console.log('bounds: ' + b[0][0] + ' ' + b[0][1]);
-	zoomScale = 0.9 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
+	viewScale = 0.9 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
 	// k = 20
 
-	var fontSize = 24 / zoomScale;
+	var fontSize = 24 / viewScale;
 
 	var names = textGroup.selectAll('text').data(ridingNames);
 
@@ -330,17 +346,19 @@ var drawRiding = function(data) {
 	names.enter()
 		.append('text');
 
-	names.text(function(d) { return d; })
-		.attr('x', x)
-		.attr('y', y)
+	names.text(function(d) { 
+			console.log(d);
+			return d; 
+		})
+		.attr('x', viewCenterX)
+		.attr('y', viewCenterY)
 		.attr('style', 'font-size:' + fontSize + 'pt');
 
-	d.style('stroke-width', 1 / k + 'px');
+	d.style('stroke-width', 1 / viewScale + 'px');
 
+	getRidingCandidates(ridingNames[0], showRidingCandidates);
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + zoomScale + ')translate(' + -x + ',' + -y + ')');
+	resolveTransition()
 };
 
 
@@ -417,71 +435,250 @@ var drawProvinceRidings = function(province, data) {
 			return 'font-size:'  + Math.min((8 * q_riding / q), 24 / k) + 'pt'; 
 		})
 		.on('click', showCandidates);
-
 };
 
 
 var zoomIn = function() {
 	// console.log('zoomIn ', viewScale);
 	viewScale = viewScale * zoomFactor;
-	superGroup.transition()
-		.duration(750)
-		// .attr('transform', 'scale(' + viewScale + ')');
-		// .attr('transform', 'translate(300,0)');
-		// .attr('transform', 'translate(-' + width / viewScale + ',-' + height / viewScale + ')scale(' + viewScale + ')');
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+
+	resolveTransition();
 };
 
 var zoomOut = function() {
 	// console.log('zoomOut ', viewScale);
 	viewScale = viewScale / zoomFactor;
-	superGroup.transition()
-		.duration(750)
-		// .attr('transform', 'scale(' + viewScale + ')');
-		// .attr('transform', 'translate(300,0)');
-		// .attr('transform', 'translate(-' + width / viewScale + ',-' + height / viewScale + ')scale(' + viewScale + ')');
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+
+	resolveTransition();
 };
 
 var panRight = function() {
 	// console.log('RIGHT ');
 	viewCenterX = viewCenterX + (panFactor / viewScale);
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+	resolveTransition();
 };
 
 var panLeft = function() {
 	// console.log('LEFT ');
 	viewCenterX = viewCenterX - (panFactor / viewScale);
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+	resolveTransition();
 };
 
 var panUp = function() {
 	viewCenterY = viewCenterY - (panFactor / viewScale);
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+	resolveTransition();
 };
 
 var panDown = function() {
 	viewCenterY = viewCenterY + (panFactor / viewScale);
 
-	superGroup.transition()
-		.duration(750)
-		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
+	resolveTransition();
 };
 
 var showRidingCandidates = function(data) {
 	console.log(data);
+	var bubbleCorner = [100, 50];
 	for (var i = 0; i < data.objects.length; i++) {
-		console.log(data.objects[i].name);
+		// console.log(data.objects[i].name);
+		var bubble = candidatesGroup.append('g').attr('class', 'bubble');
+		candidateBubble(bubble, data.objects[i]);
+
+		if (bubbleCorner[0] + 240 < width) {
+			bubble.attr('transform', 'translate(' + bubbleCorner[0] + ',' + bubbleCorner[1] + ' )')
+			bubbleCorner[0] = bubbleCorner[0] + 230
+		}
+		else {
+			bubbleCorner[0] = 100;
+			bubbleCorner[1] = bubbleCorner[1] + 230
+			bubble.attr('transform', 'translate(' + bubbleCorner[0] + ',' + bubbleCorner[1] + ' )')
+			bubbleCorner[0] = bubbleCorner[0] + 230
+		}
 	}
+};
+
+
+var candidateBubble = function(bubble, candidate) {
+	var candidateName;
+
+	bubble.attr('id', candidate.party_name);
+
+	bubble.append('rect')
+		.attr('x', '0')
+		.attr('y', '0')
+		.attr('rx', '20')
+		.attr('ry', '20')
+		.attr('width', '200')
+		.attr('height', '200')
+		.attr('fill', 'white')
+		.attr('stroke-width', '1px')
+		.attr('stroke', '#aaa');
+
+	if (candidate.photo_url) {
+		// console.log(candidate.name, ' has a photo');
+		bubble.append('image')
+			.attr('class', 'candidate_photo')
+			.attr('x', '0')
+			.attr('y', '0')
+			.attr('width', '200')
+			.attr('height', '200')
+			.attr('xlink:href', candidate.photo_url);
+
+		bubble.append('rect')
+			.attr('x', '0')
+			.attr('y', '130')
+			.attr('width', '200')
+			.attr('height', '50')
+			.style('fill', '#333333')
+			.style('opacity', '0.5');
+
+		candidateName = bubble.append('text')
+		candidateName.attr('class', 'bubble')
+			.attr('x', '60')
+			.attr('y', '160')
+			.text(candidate.name);
+	}
+
+	else {
+		console.log(candidate.name, ' has NO photo');
+
+		bubble.append('rect')
+			.attr('x', '0')
+			.attr('y', '130')
+			.attr('width', '200')
+			.attr('height', '50')
+			.style('fill', '#333333')
+			.style('opacity', '0.5');
+
+		candidateName = bubble.append('text')
+		candidateName.attr('class', 'bubble')
+			.attr('x', '60')
+			.attr('y', '160')
+			.text(candidate.name);
+	}
+
+	var partyLogo = bubble.append('image');
+	partyLogo.attr('class', 'candidate_photo')
+		.attr('x', '0')
+		.attr('y', '130')
+		.attr('width', '50')
+		.attr('height', '50');
+
+	switch (candidate.party_name) {
+		case 'Liberal' :
+			partyLogo.attr('xlink:href', 'images/L-logo-white.svg');
+			break;
+
+		case 'NDP' :
+			partyLogo.attr('xlink:href', 'images/NDP_EN.svg')
+				.attr('width', '80');
+			candidateName.attr('x', '90');
+			break;
+
+		case 'Conservative' :
+			// partyLogo.attr('xlink:href', 'http://www.conservative.ca/wp-content/themes/conservative2015/images/cpc-logo-tmb.png');
+			partyLogo.attr('xlink:href', 'images/cpc-logo-tmb.png');
+			break;
+
+		case 'Green Party' :
+			partyLogo.attr('xlink:href', 'images/gpc_logo_web_green_flower.svg');
+			break;
+
+		// case 'Forces et D\u00e9mocratie' :
+
+		case 'Libertarian' :
+			partyLogo.attr('xlink:href', 'images/LibertarianPartyOfCanadaLogo.png');
+			break;
+
+		default:
+			partyLogo.attr('xlink:href', 'images/minus.png');
+			console.log(candidate.party_name, ' still has no logo image file');
+	}
+
+	// bubble.on('click', function() {
+	// 	alert('clicked');
+	// });
+
+	// bubble.on('mouseover', function() {
+	// bubble.on('click', function() {
+	// 	// console.log('click');
+	// 	// tooltip.select('#candidate_info').text('The ' + candidate.party_name + ' candidate for ', candidate.district_name + '.');
+	// 	tooltip.select('#candidate_info').append('text').text('The ' + candidate.party_name + ' candidate for ' + candidate.district_name + '.');
+	// 	// mapSvg.select('.tooltip').html('The ' + candidate.party_name + ' candidate for ', candidate.district_name + '.');
+	// 	tooltip.attr('display', 'block');
+	// });
+
+	bubble.on('mouseover', function() {
+		// 
+		thisBubble = mapSvg.select('#' + candidate.party_name);
+		console.log(thisBubble.select('rect').attr('x'));
+		var tip = thisBubble.append('g').attr('class', 'tool');
+		tip.append('rect')
+			.attr('x', '0')
+			.attr('y', '0')
+			.attr('rx', '20')
+			.attr('ry', '20')
+			.attr('width', '200')
+			.attr('height', '40')
+			.style('fill', '#333333')
+			.style('opacity', '0.5');
+
+		tip.append('text')
+			.attr('x', '100')
+			.attr('y', '15')
+			.attr('text-anchor', 'middle')
+			.text('The ' + candidate.party_name + ' candidate');
+
+		tip.append('text')
+			.attr('x', '100')
+			.attr('y', '33')
+			.attr('text-anchor', 'middle')
+			.text('for ' + candidate.district_name + '.');
+	});
+
+	bubble.on('mouseout', function() {
+		// console.log('deleting...');
+		thisBubble = mapSvg.select('#' + candidate.party_name);
+		thisBubble.selectAll('.tool').remove();
+
+	});
+};
+
+var candidateBubbleOrig = function(bubble, candidate) {
+	bubble.append('rect')
+		.attr('class', 'icon-background')
+		.attr('x', '0')
+		.attr('y', '0')
+		.attr('rx', '30')
+		.attr('ry', '30')
+		.attr('width', '200')
+		.attr('height', '200');
+
+	bubble.append('text')
+		.attr('class', 'bubble')
+		.attr('x', '20')
+		.attr('y', '20')
+		.text('Party: ' + candidate.party_name);
+
+	bubble.append('text')
+		.attr('class', 'bubble')
+		.attr('x', '20')
+		.attr('y', '40')
+		.text('Name: ' + candidate.name);
+
+		// .photo_url for the candidates 
+		// CPC: http://www.conservative.ca/
+		// <img class="logo" src="http://www.conservative.ca/wp-content/themes/conservative2015/images/cpc-logo-tmb.png" height="30" alt="5424d490e4e1d73714fe9835_cpc-logo-tmb.png">
+};
+
+var resolveTransition = function() {
+	$('.bubble').remove();
+
+	superGroup.transition()
+		.duration(750)
+		.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')scale(' + viewScale + ')translate(' + -viewCenterX + ',' + -viewCenterY + ')');
 };
 /*********************************************************************************/
 /************************** functions for reading the DBs ************************/
@@ -560,6 +757,8 @@ var searchPostalCode = function() {
 	getRidingFromPC(postalCode, drawRiding);
 
 	// TODO: alternate AJAX call for using a different DB for riding boundaries
+
+	// TODO: add call to GET and DRAW the candidates' info
 };
 
 
