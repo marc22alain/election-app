@@ -419,7 +419,7 @@ var drawProvinceRidings = function(province, data) {
 			var q_riding = Math.max((b_riding[1][0] - b_riding[0][0]) / width, (b_riding[1][1] - b_riding[0][1]) / height);
 			return 'font-size:'  + Math.min((8 * q_riding / q), 24 / k) + 'pt'; 
 		})
-		.on('click', showCandidates);
+		.attr('pointer-events', 'none');
 
 	names.exit().remove();
 
@@ -434,7 +434,7 @@ var drawProvinceRidings = function(province, data) {
 			var q_riding = Math.max((b_riding[1][0] - b_riding[0][0]) / width, (b_riding[1][1] - b_riding[0][1]) / height);
 			return 'font-size:'  + Math.min((8 * q_riding / q), 24 / k) + 'pt'; 
 		})
-		.on('click', showCandidates);
+		.attr('pointer-events', 'none');
 };
 
 
@@ -610,7 +610,7 @@ var candidateBubble = function(bubble, candidate) {
 		var toolTipTexts = new Array();
 
 		// At 14pt, there is room for 25 Helvetica characters across a bubble tooltip
-		if (partyNameID === 'Forces') {
+		if (partyNameID === 'Forces' || partyNameID === 'Christian') {
 			toolTipTexts.push('The ' + candidate.party_name);
 			if (candidate.district_name.length < 11) {
 				toolTipTexts.push('candidate for ' + candidate.district_name + '.');
