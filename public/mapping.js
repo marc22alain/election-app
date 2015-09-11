@@ -405,36 +405,41 @@ var drawProvinceRidings = function(province, data) {
 		})
 		.on('click', showCandidates);
 
+	var splitToWrap = function(d) {
+		var b_riding = path.bounds(d);
+		var q_riding = Math.max((b_riding[1][0] - b_riding[0][0]) / width, (b_riding[1][1] - b_riding[0][1]) / height);
+		var fontSize = Math.min((8 * q_riding / q), 12 / k);
+
+		var g = d3.select(this);
+		g.selectAll('text').remove();
+		g.attr('style', 'font-size:'  + fontSize + 'pt')
+			.attr('transform', function(d) { 
+				return 'translate(' + path.centroid(d) + ')'; })
+			.attr('pointer-events', 'none');
+
+		var names = d.properties.ED_NAMEE.split('—');
+		var i = 0;
+		for (i = 0; i < names.length - 1; i++) {
+			g.append('text')
+				.text(names[i] + '-')
+				.attr('y', fontSize * i * 1.4);
+		}
+		g.append('text')
+				.text(names[i])
+				.attr('y', fontSize * i * 1.4);
+	};
 
 	// Adding the RIDING names
-	var names = textGroup.selectAll('text').data(data.features);
+	var names = textGroup.selectAll('g').data(data.features);
 	// other update procedures:
 	names
-		.attr('transform', function(d) { 
-			return 'translate(' + path.centroid(d) + ')'; })
-		.text(function(d) { 
-			return d.properties.ED_NAMEE; })
-		.attr('style', function(d) { 
-			var b_riding = path.bounds(d);
-			var q_riding = Math.max((b_riding[1][0] - b_riding[0][0]) / width, (b_riding[1][1] - b_riding[0][1]) / height);
-			return 'font-size:'  + Math.min((8 * q_riding / q), 24 / k) + 'pt'; 
-		})
-		.attr('pointer-events', 'none');
+		.each(splitToWrap);
 
 	names.exit().remove();
 
 	names.enter()
-		.append('text')
-		.attr('transform', function(d) { 
-			return 'translate(' + path.centroid(d) + ')'; })
-		.text(function(d) { 
-			return d.properties.ED_NAMEE; })
-		.attr('style', function(d) { 
-			var b_riding = path.bounds(d);
-			var q_riding = Math.max((b_riding[1][0] - b_riding[0][0]) / width, (b_riding[1][1] - b_riding[0][1]) / height);
-			return 'font-size:'  + Math.min((8 * q_riding / q), 24 / k) + 'pt'; 
-		})
-		.attr('pointer-events', 'none');
+		.append('g')
+		.each(splitToWrap);
 };
 
 
