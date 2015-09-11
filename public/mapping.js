@@ -136,7 +136,7 @@ var createMap = function(canada) {
 
 	makeZoomPanGroup();
 
-	candidatesGroup = mapSvg.append('g');
+	candidatesGroup = mapSvg.append('g').attr('id', 'candidates');
 
 	var rectMaskDef = mapSvg.append('defs').append('clipPath').attr('id','rect-mask');
 	rectMaskDef.append('rect')
@@ -503,7 +503,11 @@ var showRidingCandidates = function(data) {
 var candidateBubble = function(bubble, candidate) {
 	var candidateName;
 
-	bubble.attr('id', candidate.party_name);
+	// Because spaces in names upset selection by id: 'Green Party' does not work
+	var partyNameID = candidate.party_name.split(' ')[0];
+
+
+	bubble.attr('id', partyNameID);
 
 	bubble.append('rect')
 		.attr('x', '0')
@@ -526,38 +530,25 @@ var candidateBubble = function(bubble, candidate) {
 			.attr('height', '200')
 			.attr('xlink:href', candidate.photo_url);
 
-		bubble.append('rect')
-			.attr('x', '0')
-			.attr('y', '130')
-			.attr('width', '200')
-			.attr('height', '50')
-			.style('fill', '#333333')
-			.style('opacity', '0.5');
-
-		candidateName = bubble.append('text')
-		candidateName.attr('class', 'bubble')
-			.attr('x', '60')
-			.attr('y', '160')
-			.text(candidate.name);
 	}
 
 	else {
 		console.log(candidate.name, ' has NO photo');
-
-		bubble.append('rect')
-			.attr('x', '0')
-			.attr('y', '130')
-			.attr('width', '200')
-			.attr('height', '50')
-			.style('fill', '#333333')
-			.style('opacity', '0.5');
-
-		candidateName = bubble.append('text')
-		candidateName.attr('class', 'bubble')
-			.attr('x', '60')
-			.attr('y', '160')
-			.text(candidate.name);
 	}
+
+	bubble.append('rect')
+		.attr('x', '0')
+		.attr('y', '130')
+		.attr('width', '200')
+		.attr('height', '50')
+		.style('fill', '#333333')
+		.style('opacity', '0.5');
+
+	candidateName = bubble.append('text')
+	candidateName.attr('class', 'bubble')
+		.attr('x', '60')
+		.attr('y', '160')
+		.text(candidate.name);
 
 	var partyLogo = bubble.append('image');
 	partyLogo.attr('class', 'candidate_photo')
@@ -586,10 +577,22 @@ var candidateBubble = function(bubble, candidate) {
 			partyLogo.attr('xlink:href', 'images/gpc_logo_web_green_flower.svg');
 			break;
 
-		// case 'Forces et D\u00e9mocratie' :
+		case 'Forces et Démocratie' :
+			partyLogo.attr('xlink:href', 'images/Forces_Democratie.jpg');
+			break;
 
 		case 'Libertarian' :
 			partyLogo.attr('xlink:href', 'images/LibertarianPartyOfCanadaLogo.png');
+			break;
+
+		case 'Christian Heritage' :
+			partyLogo.attr('xlink:href', 'images/CHP-Logo_small.png')
+				.attr('width', '80');
+			candidateName.attr('x', '90');
+			break;
+
+		case 'Bloc Québécois' :
+			partyLogo.attr('xlink:href', 'images/BQ_logo_small.png');
 			break;
 
 		default:
@@ -597,23 +600,41 @@ var candidateBubble = function(bubble, candidate) {
 			console.log(candidate.party_name, ' still has no logo image file');
 	}
 
-	// bubble.on('click', function() {
-	// 	alert('clicked');
-	// });
-
-	// bubble.on('mouseover', function() {
-	// bubble.on('click', function() {
-	// 	// console.log('click');
-	// 	// tooltip.select('#candidate_info').text('The ' + candidate.party_name + ' candidate for ', candidate.district_name + '.');
-	// 	tooltip.select('#candidate_info').append('text').text('The ' + candidate.party_name + ' candidate for ' + candidate.district_name + '.');
-	// 	// mapSvg.select('.tooltip').html('The ' + candidate.party_name + ' candidate for ', candidate.district_name + '.');
-	// 	tooltip.attr('display', 'block');
-	// });
 
 	bubble.on('mouseover', function() {
-		// 
-		thisBubble = mapSvg.select('#' + candidate.party_name);
-		console.log(thisBubble.select('rect').attr('x'));
+		// Because spaces in names upset selection by id: 'Green Party' does not work
+		var partyNameID = candidate.party_name.split(' ')[0];
+
+		thisBubble = mapSvg.select('#' + partyNameID);
+
+		var toolTipTexts = new Array();
+
+		// At 14pt, there is room for 25 Helvetica characters across a bubble tooltip
+		if (partyNameID === 'Forces') {
+			toolTipTexts.push('The ' + candidate.party_name);
+			if (candidate.district_name.length < 11) {
+				toolTipTexts.push('candidate for ' + candidate.district_name + '.');
+			}
+			else {
+				var districtName = candidate.district_name.split('-');
+				var rest = districtName.slice(districtName[0].length + 1);
+				toolTipTexts.push('candidate for ' + districtName[0] + '-');
+				toolTipTexts.push(rest + '.');
+			}
+		}
+		else {
+			toolTipTexts.push('The ' + candidate.party_name + ' candidate');
+			if (candidate.district_name.length < 22) {
+				toolTipTexts.push('for ' + candidate.district_name + '.');
+			}
+			else {
+				var districtName = candidate.district_name.split('—');
+				var rest = candidate.district_name.slice(districtName[0].length + 1);
+				toolTipTexts.push('for ' + districtName[0] + '-');
+				toolTipTexts.push(rest + '.');
+			}
+		}
+
 		var tip = thisBubble.append('g').attr('class', 'tool');
 		tip.append('rect')
 			.attr('x', '0')
@@ -629,18 +650,30 @@ var candidateBubble = function(bubble, candidate) {
 			.attr('x', '100')
 			.attr('y', '15')
 			.attr('text-anchor', 'middle')
-			.text('The ' + candidate.party_name + ' candidate');
+			.text(toolTipTexts[0]);
 
 		tip.append('text')
 			.attr('x', '100')
 			.attr('y', '33')
 			.attr('text-anchor', 'middle')
-			.text('for ' + candidate.district_name + '.');
+			.text(toolTipTexts[1]);
+
+		if (toolTipTexts.length === 3) {
+			tip.append('text')
+				.attr('x', '100')
+				.attr('y', '51')
+				.attr('text-anchor', 'middle')
+				.text(toolTipTexts[2]);
+
+			tip.select('rect')
+				.attr('height', '58');
+		}
 	});
 
 	bubble.on('mouseout', function() {
-		// console.log('deleting...');
-		thisBubble = mapSvg.select('#' + candidate.party_name);
+		// Because spaces in names upset selection by id: 'Green Party' does not work
+		var partyNameID = candidate.party_name.split(' ')[0];
+		thisBubble = mapSvg.select('#' + partyNameID);
 		thisBubble.selectAll('.tool').remove();
 
 	});
@@ -667,10 +700,6 @@ var candidateBubbleOrig = function(bubble, candidate) {
 		.attr('x', '20')
 		.attr('y', '40')
 		.text('Name: ' + candidate.name);
-
-		// .photo_url for the candidates 
-		// CPC: http://www.conservative.ca/
-		// <img class="logo" src="http://www.conservative.ca/wp-content/themes/conservative2015/images/cpc-logo-tmb.png" height="30" alt="5424d490e4e1d73714fe9835_cpc-logo-tmb.png">
 };
 
 var resolveTransition = function() {
@@ -757,8 +786,6 @@ var searchPostalCode = function() {
 	getRidingFromPC(postalCode, drawRiding);
 
 	// TODO: alternate AJAX call for using a different DB for riding boundaries
-
-	// TODO: add call to GET and DRAW the candidates' info
 };
 
 
